@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>CRM Sync Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f4f7f6; }
+        .container { width: 80%; margin-top: 50px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+    </style>
+</head>
+<body>
+
+    <h1>Мини-дашборд заказов</h1>
+    <div class="container">
+        <canvas id="ordersChart"></canvas>
+    </div>
+
+    <script>
+        // Данные для подключения (замени на свои из .env)
+        const SB_URL = "https://rdpsihenoqvdmnfcpkwp.supabase.co"; // Твой URL из .env
+        const SB_KEY = "sb_publishable_aXQ83jpvoDMSYbJPJd-VEQ_MkwTjyxb"; // Твой ключ из .env
+
+        async function fetchData() {
+            const response = await fetch(`${SB_URL}/rest/v1/orders?select=*`, {
+                headers: {
+                    "apikey": SB_KEY,
+                    "Authorization": `Bearer ${SB_KEY}`
+                }
+            });
+            const data = await response.json();
+            renderChart(data);
+        }
+
+        function renderChart(orders) {
+            const labels = orders.map(o => o.external_id);
+            const amounts = orders.map(o => o.total_sum);
+
+            const ctx = document.getElementById('ordersChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Сумма заказа (₸)',
+                        data: amounts,
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        fetchData();
+    </script>
+</body>
+</html>
